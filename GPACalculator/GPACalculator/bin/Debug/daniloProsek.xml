@@ -1,0 +1,111 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Courses>
+    <Course>
+        <Name>OET</Name>
+        <ECTS>9</ECTS>
+        <Grade>9</Grade>
+        <Passed>True</Passed>
+    </Course>
+    <Course>
+        <Name>SAUE</Name>
+        <ECTS>9</ECTS>
+        <Grade>10</Grade>
+        <Passed>True</Passed>
+    </Course>
+    <Course>
+        <Name>Algebra</Name>
+        <ECTS>9</ECTS>
+        <Grade>9</Grade>
+        <Passed>True</Passed>
+    </Course>
+    <Course>
+        <Name>Matematicka Analiza</Name>
+        <ECTS>9</ECTS>
+        <Grade>8</Grade>
+        <Passed>True</Passed>
+    </Course>
+    <Course>
+        <Name>PJISP</Name>
+        <ECTS>9</ECTS>
+        <Grade>10</Grade>
+        <Passed>True</Passed>
+    </Course>
+    <Course>
+        <Name>Arhitektura Racunara</Name>
+        <ECTS>9</ECTS>
+        <Grade>9</Grade>
+        <Passed>True</Passed>
+    </Course>
+    <Course>
+        <Name>Operativni Sistemi</Name>
+        <ECTS>8</ECTS>
+        <Grade>10</Grade>
+        <Passed>True</Passed>
+    </Course>
+    <Course>
+        <Name>Objektno Programiranje</Name>
+        <ECTS>8</ECTS>
+        <Grade>10</Grade>
+        <Passed>True</Passed>
+    </Course>
+    <Course>
+        <Name>NRS</Name>
+        <ECTS>8</ECTS>
+        <Grade>9</Grade>
+        <Passed>False</Passed>
+    </Course>
+    <Course>
+        <Name>Elektroenergetski sistemi</Name>
+        <ECTS>7</ECTS>
+        <Grade>6</Grade>
+        <Passed>True</Passed>
+    </Course>
+    <Course>
+        <Name>LPRS1</Name>
+        <ECTS>6</ECTS>
+        <Grade>8</Grade>
+        <Passed>True</Passed>
+    </Course>
+    <Course>
+        <Name>ADS</Name>
+        <ECTS>5</ECTS>
+        <Grade>9</Grade>
+        <Passed>True</Passed>
+    </Course>
+    <Course>
+        <Name>Metodi Optimizacije</Name>
+        <ECTS>5</ECTS>
+        <Grade>7</Grade>
+        <Passed>True</Passed>
+    </Course>
+    <Course>
+        <Name>Diskretna Matematika</Name>
+        <ECTS>5</ECTS>
+        <Grade>9</Grade>
+        <Passed>False</Passed>
+    </Course>
+    <Course>
+        <Name>PRMuIS1</Name>
+        <ECTS>4</ECTS>
+        <Grade>10</Grade>
+        <Passed>True</Passed>
+    </Course>
+    <Course>
+        <Name>PRMuIS2</Name>
+        <ECTS>4</ECTS>
+        <Grade>10</Grade>
+        <Passed>False</Passed>
+    </Course>
+    <Course>
+        <Name>Engleski</Name>
+        <ECTS>3</ECTS>
+        <Grade>9</Grade>
+        <Passed>True</Passed>
+    </Course>
+    <Course>
+        <Name>Sociologija</Name>
+        <ECTS>3</ECTS>
+        <Grade>8</Grade>
+        <Passed>True</Passed>
+    </Course>
+</Courses>

@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2035
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExerciseThree_Net", "ExerciseThree_Net\ExerciseThree_Net.csproj", "{4844270E-E0ED-49CA-AC47-308CE4CDD1CE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmailSender", "EmailSender\EmailSender.csproj", "{9F195220-7B5D-4674-B6F9-CE7EEB366837}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4844270E-E0ED-49CA-AC47-308CE4CDD1CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4844270E-E0ED-49CA-AC47-308CE4CDD1CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4844270E-E0ED-49CA-AC47-308CE4CDD1CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4844270E-E0ED-49CA-AC47-308CE4CDD1CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F195220-7B5D-4674-B6F9-CE7EEB366837}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F195220-7B5D-4674-B6F9-CE7EEB366837}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F195220-7B5D-4674-B6F9-CE7EEB366837}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F195220-7B5D-4674-B6F9-CE7EEB366837}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FFCE4BD2-6000-4AF2-B3C8-32A0679D3D60}
+	EndGlobalSection
+EndGlobal

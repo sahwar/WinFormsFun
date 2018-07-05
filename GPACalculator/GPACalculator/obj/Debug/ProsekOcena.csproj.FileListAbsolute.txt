@@ -1,0 +1,11 @@
+D:\Danilo\C#\WindowsForms\ProsekOcena\ProsekOcena\bin\Debug\ProsekOcena.exe.config
+D:\Danilo\C#\WindowsForms\ProsekOcena\ProsekOcena\bin\Debug\ProsekOcena.exe
+D:\Danilo\C#\WindowsForms\ProsekOcena\ProsekOcena\bin\Debug\ProsekOcena.pdb
+D:\Danilo\C#\WindowsForms\ProsekOcena\ProsekOcena\obj\Debug\ProsekOcena.csprojAssemblyReference.cache
+D:\Danilo\C#\WindowsForms\ProsekOcena\ProsekOcena\obj\Debug\ProsekOcena.Properties.Resources.resources
+D:\Danilo\C#\WindowsForms\ProsekOcena\ProsekOcena\obj\Debug\ProsekOcena.csproj.GenerateResource.cache
+D:\Danilo\C#\WindowsForms\ProsekOcena\ProsekOcena\obj\Debug\ProsekOcena.csproj.CoreCompileInputs.cache
+D:\Danilo\C#\WindowsForms\ProsekOcena\ProsekOcena\obj\Debug\ProsekOcena.exe
+D:\Danilo\C#\WindowsForms\ProsekOcena\ProsekOcena\obj\Debug\ProsekOcena.pdb
+D:\Danilo\C#\WindowsForms\ProsekOcena\ProsekOcena\obj\Debug\ProsekOcena.AddCourseForm.resources
+D:\Danilo\C#\WindowsForms\ProsekOcena\ProsekOcena\obj\Debug\ProsekOcena.MainForm.resources
