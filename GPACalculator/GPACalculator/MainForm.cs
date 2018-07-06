@@ -224,7 +224,8 @@ namespace ProsekOcena
             try
             {
                 dgvCourses.Rows.Clear();
-                this.Text = string.Empty;
+                this.Text = "Untitled";
+                lastOpenedFileName = string.Empty;
             }
             catch (Exception ex)
             {
@@ -233,6 +234,10 @@ namespace ProsekOcena
         }
         private void Exit(object sender, EventArgs e)
         {
+            if (DialogResult.Yes == MessageBox.Show($"Do you want to save changes to {this.Text}?", System.Reflection.Assembly.GetExecutingAssembly().GetName().Name, MessageBoxButtons.YesNo, MessageBoxIcon.Question))
+            {
+                SaveXML(sender, e);
+            }
             Application.Exit();
         }
         private void UpdateMainFormSize()
@@ -341,14 +346,14 @@ namespace ProsekOcena
                     }
                     xWriter.WriteEndElement();
                     xWriter.WriteEndDocument();
+
+                    MessageBox.Show("Item(s) Saved!", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show(ex.ToString(), $"{ex.GetType()} ({ex.HResult})", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-
-            MessageBox.Show("Item(s) Saved!", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         private void CreateNewDataGridView(object sender, EventArgs e)
         {
@@ -478,6 +483,14 @@ namespace ProsekOcena
             finally
             {
                 anError.Cancel = true;
+            }
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if(e.CloseReason == CloseReason.UserClosing)
+            {
+                Exit(sender, e);
             }
         }
     }
