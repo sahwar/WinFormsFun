@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
+using System.Drawing.Imaging;
 
 namespace Paint
 {
@@ -28,17 +29,36 @@ namespace Paint
     }
     public partial class FormPaint : Form
     {
-        private string lastOpenedFileName = string.Empty;
-        private bool canDraw = false;
-        private Point lastPoint = new Point(0, 0);
-        private Brush selectedBrush = default(Brush);
-        private Graphics graphicPanel = default(Graphics);
-        private Bitmap buffer = default(Bitmap);
-        private Stack<Bitmap> undoBitmaps = new Stack<Bitmap>();
-        private Stack<Bitmap> redoBitmaps = new Stack<Bitmap>();
+        // fields
+        private string _lastOpenedFileName = string.Empty;
+
+        private Point _lastPoint = new Point(0, 0);
+        private Brush _selectedBrush = default(Brush);
+        private Graphics _graphicPanel = default(Graphics);
+        private bool _canDraw = false;
+        
+        private Stack<Bitmap> _undoBitmaps = new Stack<Bitmap>();
+        private Stack<Bitmap> _redoBitmaps = new Stack<Bitmap>();
+
+        private bool _hasBufferChanged = false;
+        private Bitmap _buffer = default(Bitmap);
         private int _brushSize = default(int);
         private ShapeSelected _shape = ShapeSelected.None;
         private BrushType _brushType = BrushType.Solid;
+
+        // props
+        public Bitmap Buffer
+        {
+            get
+            {
+                return _buffer;
+            }
+            set
+            {
+                _buffer = value;
+                _hasBufferChanged = true;
+            }
+        }
         public int BrushSize
         {
             get => _brushSize;
@@ -46,6 +66,29 @@ namespace Paint
             {
                 btnBrushSize.Text = value.ToString();
                 _brushSize = value;
+            }
+        }
+        public BrushType SelectedBrushType
+        {
+            get
+            {
+                return _brushType;
+            }
+            set
+            {
+                switch (value)
+                {
+                    case BrushType.Texture:
+                        btnTools.Text = $"{BrushType.Texture.ToString()} brush";
+                        break;
+                    case BrushType.Gradient:
+                        btnTools.Text = $"{BrushType.Gradient.ToString()} brush";
+                        break;
+                    default:
+                        btnTools.Text = $"{BrushType.Solid.ToString()} brush";
+                        break;
+                }
+                _brushType = value;
             }
         }
         public ShapeSelected Shape
@@ -77,45 +120,32 @@ namespace Paint
                 }
             }
         }
-        public BrushType SelectedBrushType
-        {
-            get
-            {
-                return _brushType;
-            }
-            set
-            {
-                switch (value)
-                {
-                    case BrushType.Texture:
-                        btnTools.Text = $"{BrushType.Texture.ToString()} brush";
-                        break;
-                    case BrushType.Gradient:
-                        btnTools.Text = $"{BrushType.Gradient.ToString()} brush";
-                        break;
-                    default:
-                        btnTools.Text = $"{BrushType.Solid.ToString()} brush";
-                        break;
-                }
-                _brushType = value;
-            }
-        }
+
+        // ctor
         public FormPaint()
         {
             InitializeComponent();
 
-            graphicPanel = panelDraw.CreateGraphics();
+            _graphicPanel = panelDraw.CreateGraphics();
             BrushSize = 1;
-            selectedBrush = CreateBrush();
+            _selectedBrush = CreateBrush();
             Shape = ShapeSelected.None;
 
-            buffer = new Bitmap(panelDraw.ClientSize.Width, panelDraw.ClientSize.Height);
-            using (Graphics g = Graphics.FromImage(buffer))
+            try
             {
-                g.Clear(panelDraw.BackColor);
+                Buffer = new Bitmap(panelDraw.ClientSize.Width, panelDraw.ClientSize.Height);
+                using (Graphics g = Graphics.FromImage(Buffer))
+                {
+                    g.Clear(panelDraw.BackColor);
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message, $"type:{ex.GetType()}, source:{ex.Source}", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
+        // methods
         private Brush CreateBrush(BrushType type = BrushType.Solid)
         {
             Brush brush = default(Brush);
@@ -163,7 +193,7 @@ namespace Paint
         {
             if (SelectedBrushType != BrushType.Texture)
             {
-                selectedBrush = CreateBrush(SelectedBrushType);
+                _selectedBrush = CreateBrush(SelectedBrushType);
             }
         }
         private void BrushSizePicked(object sender, ToolStripItemClickedEventArgs e)
@@ -208,10 +238,10 @@ namespace Paint
             try
             {
                 SelectedBrushType = (BrushType)int.Parse(e.ClickedItem.Tag.ToString());
-                selectedBrush = CreateBrush(SelectedBrushType);
-                if(selectedBrush is null)
+                _selectedBrush = CreateBrush(SelectedBrushType);
+                if(_selectedBrush is null)
                 {
-                    selectedBrush = CreateBrush(BrushType.Solid);
+                    _selectedBrush = CreateBrush(BrushType.Solid);
                     SelectedBrushType = BrushType.Solid;
                 }
             }
@@ -223,71 +253,98 @@ namespace Paint
 
         private void panelDraw_MouseDown(object sender, MouseEventArgs e)
         {
-            undoBitmaps.Push((Bitmap)buffer.Clone());
-            redoBitmaps.Clear();
-            switch (Shape)
+            try
             {
-                case ShapeSelected.Square:
-                    graphicPanel.FillRectangle(selectedBrush, e.X, e.Y, BrushSize * 6, BrushSize * 6);
-                    using (Graphics g = Graphics.FromImage(buffer))
-                    {
-                        g.FillRectangle(selectedBrush, e.X, e.Y, BrushSize * 6, BrushSize * 6);
-                    }
-                    break;
-                case ShapeSelected.Rectangle:
-                    graphicPanel.FillRectangle(selectedBrush, e.X, e.Y, BrushSize * 9, BrushSize * 6);
-                    using (Graphics g = Graphics.FromImage(buffer))
-                    {
-                        g.FillRectangle(selectedBrush, e.X, e.Y, BrushSize * 9, BrushSize * 6);
-                    }
-                    break;
-                case ShapeSelected.Circle:
-                    graphicPanel.FillEllipse(selectedBrush, e.X, e.Y, BrushSize * 6, BrushSize * 6);
-                    using (Graphics g = Graphics.FromImage(buffer))
-                    {
-                        g.FillEllipse(selectedBrush, e.X, e.Y, BrushSize * 6, BrushSize * 6);
-                    }
-                    break;
-                default:
-                    lastPoint = e.Location;
-                    canDraw = true;
-                    break;
+                _undoBitmaps.Push((Bitmap)Buffer.Clone());
+                _redoBitmaps.Clear();
+                switch (Shape)
+                {
+                    case ShapeSelected.Square:
+                        _graphicPanel.FillRectangle(_selectedBrush, e.X, e.Y, BrushSize * 6, BrushSize * 6);
+                        using (Graphics g = Graphics.FromImage(Buffer))
+                        {
+                            g.FillRectangle(_selectedBrush, e.X, e.Y, BrushSize * 6, BrushSize * 6);
+                        }
+                        break;
+                    case ShapeSelected.Rectangle:
+                        _graphicPanel.FillRectangle(_selectedBrush, e.X, e.Y, BrushSize * 9, BrushSize * 6);
+                        using (Graphics g = Graphics.FromImage(Buffer))
+                        {
+                            g.FillRectangle(_selectedBrush, e.X, e.Y, BrushSize * 9, BrushSize * 6);
+                        }
+                        break;
+                    case ShapeSelected.Circle:
+                        _graphicPanel.FillEllipse(_selectedBrush, e.X, e.Y, BrushSize * 6, BrushSize * 6);
+                        using (Graphics g = Graphics.FromImage(Buffer))
+                        {
+                            g.FillEllipse(_selectedBrush, e.X, e.Y, BrushSize * 6, BrushSize * 6);
+                        }
+                        break;
+                    default:
+                        _lastPoint = e.Location;
+                        _canDraw = true;
+                        break;
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message, $"type:{ex.GetType()}, source:{ex.Source}", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private void panelDraw_MouseUp(object sender, MouseEventArgs e)
         {
-            canDraw = false;
-
+            _canDraw = false;
         }
         private void panelDraw_MouseMove(object sender, MouseEventArgs e)
         {
-            if (canDraw)
+            if (_canDraw)
             {
-                graphicPanel.DrawLine(new Pen(selectedBrush, BrushSize), lastPoint, e.Location);
-                using (Graphics g = Graphics.FromImage(buffer))
+                try
                 {
-                    g.DrawLine(new Pen(selectedBrush, BrushSize), lastPoint, e.Location);
+                    _graphicPanel.DrawLine(new Pen(_selectedBrush, BrushSize), _lastPoint, e.Location);
+                    using (Graphics g = Graphics.FromImage(Buffer))
+                    {
+                        g.DrawLine(new Pen(_selectedBrush, BrushSize), _lastPoint, e.Location);
+                    }
                 }
-                lastPoint = e.Location;
+                catch(Exception ex)
+                {
+                    MessageBox.Show(ex.Message, $"type:{ex.GetType()}, source:{ex.Source}", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                _lastPoint = e.Location;
             }
         }
 
         private void Undo(object sender, EventArgs e)
         {
-            if (undoBitmaps.Count > 0)
+            if (_undoBitmaps.Count > 0)
             {
-                redoBitmaps.Push((Bitmap)buffer.Clone());
-                buffer = undoBitmaps.Pop();
-                panelDraw.Refresh();
+                try
+                {
+                    _redoBitmaps.Push((Bitmap)Buffer.Clone());
+                    Buffer = _undoBitmaps.Pop();
+                    panelDraw.Refresh();
+                }
+                catch(Exception ex)
+                {
+                    MessageBox.Show(ex.Message, $"type:{ex.GetType()}, source:{ex.Source}", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
         private void Redo(object sender, EventArgs e)
         {
-            if (redoBitmaps.Count > 0)
+            if (_redoBitmaps.Count > 0)
             {
-                undoBitmaps.Push((Bitmap)redoBitmaps.Peek().Clone());
-                buffer = redoBitmaps.Pop();
-                panelDraw.Refresh();
+                try
+                {
+                    _undoBitmaps.Push((Bitmap)Buffer.Clone());
+                    Buffer = _redoBitmaps.Pop();
+                    panelDraw.Refresh();
+                }
+                catch(Exception ex)
+                {
+                    MessageBox.Show(ex.Message, $"type:{ex.GetType()}, source:{ex.Source}", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
@@ -299,63 +356,90 @@ namespace Paint
             };
             if (sfd.ShowDialog() == DialogResult.OK)
             {
-                buffer = new Bitmap(panelDraw.ClientSize.Width, panelDraw.ClientSize.Height);
-                this.Text = $"{Path.GetFileName(sfd.FileName)} - Danilo's Paint";
-                lastOpenedFileName = sfd.FileName;
+                if (_hasBufferChanged)
+                {
+                    SaveIfUserWants(sender, e);
+                }
+                _undoBitmaps.Clear();
+                _redoBitmaps.Clear();
+                Buffer.Dispose();
+                try
+                {
+                    Buffer = new Bitmap(panelDraw.ClientSize.Width, panelDraw.ClientSize.Height);
+                    this.Text = $"{Path.GetFileName(sfd.FileName)} - Danilo's Paint";
+                }
+                catch(Exception ex)
+                {
+                    MessageBox.Show(ex.Message, $"type:{ex.GetType()}, source:{ex.Source}", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                _lastOpenedFileName = sfd.FileName;
                 panelDraw.Refresh();
-                undoBitmaps.Clear();
-                redoBitmaps.Clear();
             }
-
         }
         private void Open(object sender, EventArgs e)
         {
             OpenFileDialog ofd = new OpenFileDialog()
             {
-                Filter = "Bitmap|*.bmp"
+                Filter = "Bitmap|*.bmp|JPEG|*.jpg|PNG|*.png|Icon|*.ico"
             };
             if (ofd.ShowDialog() == DialogResult.OK)
             {
-                buffer = new Bitmap(ofd.FileName);
-                if (buffer.Width > panelDraw.Width)
+                try
                 {
-                    panelDraw.Width = buffer.Width;
+                    if (_hasBufferChanged)
+                    {
+                        SaveIfUserWants(sender, e);
+                    }
+                    _undoBitmaps.Clear();
+                    _redoBitmaps.Clear();
+                    using (FileStream fs = new FileStream(ofd.FileName, FileMode.Open, FileAccess.Read))
+                    {
+                        Image image = Image.FromStream(fs);
+                        using (Graphics g = Graphics.FromImage(Buffer))
+                        {
+                            g.DrawImage(image, Point.Empty);
+                        }
+                    }
+                    this.Text = $"{Path.GetFileName(ofd.FileName)} - Danilo's Paint";
+                    _lastOpenedFileName = ofd.FileName;
+                    panelDraw.Refresh();
                 }
-                if (buffer.Height > panelDraw.Height)
+                catch(Exception ex)
                 {
-                    panelDraw.Height = buffer.Height;
+                    MessageBox.Show(ex.Message, $"type:{ex.GetType()}, source:{ex.Source}", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-                this.Text = $"{Path.GetFileName(ofd.FileName)} - Danilo's Paint";
-                lastOpenedFileName = ofd.FileName;
-                panelDraw.Refresh();
-                undoBitmaps.Clear();
-                redoBitmaps.Clear();
             }
-
         }
         private void Save(object sender, EventArgs e)
         {
-            if (lastOpenedFileName.Equals(string.Empty))
+            if (_lastOpenedFileName.Equals(string.Empty))
             {
                 SaveAs(sender, e);
             }
             else
             {
-                SaveTo(lastOpenedFileName);
+                SaveTo(_lastOpenedFileName);
             }
         }
         private void SaveAs(object sender, EventArgs e)
         {
             SaveFileDialog sfd = new SaveFileDialog()
             {
-                Filter = "Bitmap|*.bmp"
+                Filter = "Bitmap|*.bmp|JPEG|*.jpg|PNG|*.png|Icon|*.ico"
             };
             if (sfd.ShowDialog() == DialogResult.OK)
             {
-                if (SaveTo(sfd.FileName))
+                try
                 {
-                    this.Text = $"{Path.GetFileName(sfd.FileName)} - Danilo's Paint";
-                    lastOpenedFileName = sfd.FileName;
+                    if (SaveTo(sfd.FileName))
+                    {
+                        this.Text = $"{Path.GetFileName(sfd.FileName)} - Danilo's Paint";
+                        _lastOpenedFileName = sfd.FileName;
+                    }
+                }
+                catch (ArgumentException ex)
+                {
+                    MessageBox.Show(ex.Message, $"source:{ex.Source}", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
         }
@@ -363,34 +447,78 @@ namespace Paint
         {
             try
             {
-                buffer.Save(fileName);
+                using (MemoryStream memory = new MemoryStream())
+                {
+                    using (FileStream fs = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite))
+                    {
+                        string extension = Path.GetExtension(fileName);
+                        switch (extension)
+                        {
+                            case ".jpg":
+                                Buffer.Save(memory, ImageFormat.Jpeg);
+                                break;
+                            case ".png":
+                                Buffer.Save(memory, ImageFormat.Png);
+                                break;
+                            case ".ico":
+                                Buffer.Save(memory, ImageFormat.Icon);
+                                break;
+                            default:
+                                Buffer.Save(memory, ImageFormat.Bmp);
+                                break;
+                        }
+                        byte[] bytes = memory.ToArray();
+                        fs.Write(bytes, 0, bytes.Length);
+                    }
+                }
                 MessageBox.Show("File saved!", "Saved", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                _hasBufferChanged = false;
                 return true;
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, $"{ex.HResult} - {ex.GetType()}", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message, $"{ex.HResult} - {ex.GetType()}", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
         }
-
+        private void SaveIfUserWants(object sender, EventArgs e)
+        {
+            try
+            {
+                string safeFileName = this.Text.Split(' ')[0];
+                string msg = $"Do you want to save changes to {(_lastOpenedFileName == string.Empty ? safeFileName : _lastOpenedFileName)}";
+                if (DialogResult.OK == MessageBox.Show(msg, System.Reflection.Assembly.GetExecutingAssembly().GetName().Name, MessageBoxButtons.YesNo, MessageBoxIcon.Question))
+                {
+                    Save(sender, e);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, $"type:{ex.GetType()}, source:{ex.Source}", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
         private void ClearPanel(object sender, EventArgs e)
         {
-            graphicPanel.Clear(panelDraw.BackColor);
-            using (Graphics g = Graphics.FromImage(buffer))
+            try
             {
-                g.Clear(panelDraw.BackColor);
+                _graphicPanel.Clear(panelDraw.BackColor);
+                using (Graphics g = Graphics.FromImage(Buffer))
+                {
+                    g.Clear(panelDraw.BackColor);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, ex.Source, MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
         private void Exit(object sender, EventArgs e)
         {
             try
             {
-                string safeFileName = this.Text.Split(' ')[0];
-                string msg = $"Do you want to save changes to {(lastOpenedFileName == string.Empty ? safeFileName : lastOpenedFileName)}";
-                if (DialogResult.OK == MessageBox.Show(msg, System.Reflection.Assembly.GetExecutingAssembly().GetName().Name, MessageBoxButtons.YesNo, MessageBoxIcon.Question))
+                if (_hasBufferChanged)
                 {
-                    Save(sender, e);
+                    SaveIfUserWants(sender, e);
                 }
             }
             catch { }
@@ -409,13 +537,27 @@ namespace Paint
 
         private void FormPaint_Paint(object sender, PaintEventArgs e)
         {
-            LinearGradientBrush lgb = new LinearGradientBrush(this.ClientRectangle, this.BackColor, Color.FromArgb(0xDC, 0xE5, 0xF2), 90f);
-            Graphics formGraphic = this.CreateGraphics();
-            formGraphic.FillRectangle(lgb, this.ClientRectangle);
+            try
+            {
+                LinearGradientBrush lgb = new LinearGradientBrush(this.ClientRectangle, this.BackColor, Color.FromArgb(0xDC, 0xE5, 0xF2), 90f);
+                Graphics formGraphic = this.CreateGraphics();
+                formGraphic.FillRectangle(lgb, this.ClientRectangle);
+            }
+            catch (ArgumentNullException ex)
+            {
+                MessageBox.Show(ex.Message, ex.Source, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
         private void panelDraw_Paint(object sender, PaintEventArgs e)
         {
-            e.Graphics.DrawImage(buffer, Point.Empty);
+            try
+            {
+                e.Graphics.DrawImage(Buffer, Point.Empty);
+            }
+            catch (ArgumentNullException ex)
+            {
+                MessageBox.Show(ex.Message, ex.Source, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         
